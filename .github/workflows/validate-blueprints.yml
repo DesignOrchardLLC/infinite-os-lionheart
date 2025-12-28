@@ -1,0 +1,145 @@
+name: Validate Phoenix Blueprints (STRICT + SEALED)
+
+on:
+  push:
+    paths:
+      - "blueprints/**"
+      - ".github/workflows/validate-blueprints.yml"
+  pull_request:
+    paths:
+      - "blueprints/**"
+      - ".github/workflows/validate-blueprints.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-schema:
+    name: Schema Compliance (Strict + Sealed)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install AJV CLI & Formats
+        run: npm install -g ajv-cli@5 ajv-formats@3
+
+      - name: Enforce "No Schema Without Witness"
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          SCHEMAS=(blueprints/schema/*.schema.json)
+          if [ ${#SCHEMAS[@]} -eq 0 ]; then
+            echo "❌ CRITICAL: No schemas found in blueprints/schema/"
+            exit 1
+          fi
+
+          echo "🔒 Enforcing: every schema must have at least one witness example."
+          for schema in "${SCHEMAS[@]}"; do
+            base="$(basename "$schema" .schema.json)"
+            matches=(blueprints/examples/"$base".json blueprints/examples/"$base".*.json)
+
+            if [ ${#matches[@]} -eq 0 ]; then
+              echo "❌ CRITICAL: Schema has no witness examples: $schema"
+              echo "Expected at least one of:"
+              echo "  blueprints/examples/$base.json"
+              echo "  blueprints/examples/$base.*.json"
+              exit 1
+            fi
+
+            echo "✅ Witness found for schema: $base (${#matches[@]} example(s))"
+          done
+
+      - name: Enforce Sealed Schemas (ROOT additionalProperties: false)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          SCHEMAS=(blueprints/schema/*.schema.json)
+          open=""
+
+          for f in "${SCHEMAS[@]}"; do
+            if ! jq -e '.additionalProperties == false' "$f" >/dev/null; then
+              open+="$f"$'\n'
+            fi
+          done
+
+          if [ -n "$open" ]; then
+            echo "❌ CRITICAL: All schemas must be sealed at the ROOT (additionalProperties: false)."
+            echo "The following schemas are open:"
+            printf "%s" "$open"
+            exit 1
+          fi
+
+          echo "✅ All schemas are sealed."
+
+      - name: Validate all Examples against Schemas (Draft-07 + Strict + Formats)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          EXAMPLES=(blueprints/examples/*.json)
+          if [ ${#EXAMPLES[@]} -eq 0 ]; then
+            echo "❌ CRITICAL: No examples found in blueprints/examples/"
+            exit 1
+          fi
+
+          echo "🔍 Validating all examples (Strict Mode + Formats)..."
+          failures=0
+
+          for example in "${EXAMPLES[@]}"; do
+            fname="$(basename "$example")"
+
+            # Example naming convention:
+            #   base.json
+            #   base.low.json / base.high.json / base.anything.json
+            base="${fname%.json}"
+            base="${base%%.*}"
+
+            schema="blueprints/schema/${base}.schema.json"
+
+            if [ ! -f "$schema" ]; then
+              echo "❌ CRITICAL: No matching schema for example: $example"
+              echo "Expected schema at: $schema"
+              failures=$((failures+1))
+              continue
+            fi
+
+            echo "➡️  $example  →  $schema"
+            if ! ajv validate --spec=draft7 --strict=true -c ajv-formats -s "$schema" -d "$example"; then
+              echo "❌ Validation failed: $example"
+              failures=$((failures+1))
+            else
+              echo "✅ Valid: $example"
+            fi
+          done
+
+          if [ "$failures" -ne 0 ]; then
+            echo "❌ CRITICAL: $failures example(s) failed schema compliance."
+            exit 1
+          fi
+
+          echo "✅ All examples are schema-compliant."
+
+      - name: Enforce schema folder hygiene
+        run: |
+          set -euo pipefail
+
+          bad=$(find blueprints/schema -type f ! -name '*.schema.json' -print | wc -l | tr -d ' ')
+          if [ "$bad" != "0" ]; then
+            echo "❌ CRITICAL: Non-schema files detected in blueprints/schema/. Only *.schema.json allowed."
+            find blueprints/schema -type f ! -name '*.schema.json' -print
+            exit 1
+          fi
+
+          echo "✅ Schema folder hygiene passed."

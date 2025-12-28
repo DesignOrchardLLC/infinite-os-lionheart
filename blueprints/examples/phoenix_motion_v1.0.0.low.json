@@ -1,0 +1,33 @@
+{
+  "header": {
+    "protocol": "PHOENIX_MOTION",
+    "version": "1.0.0",
+    "id": "demo-motion-001",
+    "timestamp": "2025-05-15T14:00:00Z"
+  },
+  "authority": {
+    "source_model": "GEMINI",
+    "consent_ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "execution_strategy": {
+    "mode": "ATOMIC",
+    "rollback_guarantee": true,
+    "on_failure": "FULL_ROLLBACK"
+  },
+  "plan": {
+    "preconditions": [],
+    "steps": [
+      {
+        "action": "MUTATE_STATE",
+        "target": "global_context",
+        "payload": {
+          "key": "phoenix_test_flag",
+          "value": true
+        }
+      }
+    ],
+    "postconditions": [
+      { "validate": "SYNTAX_VALID" }
+    ]
+  }
+}

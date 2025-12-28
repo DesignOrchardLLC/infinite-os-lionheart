@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phoenix Motion v1.0.0",
+  "description": "Executable Action Blueprint for Phoenix Runtime",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol", "version", "id", "timestamp"],
+      "properties": {
+        "protocol": { "const": "PHOENIX_MOTION" },
+        "version": { "const": "1.0.0" },
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_model", "consent_ref"],
+      "properties": {
+        "source_model": {
+          "type": "string",
+          "enum": ["GEMINI", "GPT4", "CLAUDE"]
+        },
+        "consent_ref": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "signature": {
+          "type": "string"
+        }
+      }
+    },
+    "execution_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "rollback_guarantee"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["ATOMIC", "SEQUENTIAL", "PARALLEL"]
+        },
+        "rollback_guarantee": { "type": "boolean" },
+        "on_failure": {
+          "type": "string",
+          "enum": ["FULL_ROLLBACK", "ABORT", "WARN"]
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preconditions", "steps", "postconditions"],
+      "properties": {
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["check", "target"],
+            "properties": {
+              "check": {
+                "type": "string",
+                "enum": ["FILE_EXISTS", "FILE_ABSENT", "STATE_EQUALS"]
+              },
+              "target": { "type": "string" }
+            }
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "target", "payload"],
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": ["CREATE_FILE", "MODIFY_FILE", "DELETE_FILE", "MUTATE_STATE"]
+              },
+              "target": { "type": "string" },
+              "payload": {
+                "oneOf": [
+                  {
+                    "required": ["content"],
+                    "properties": { "content": { "type": "string" } }
+                  },
+                  {
+                    "required": ["diff_hunk"],
+                    "properties": { "diff_hunk": { "type": "string" } }
+                  },
+                  {
+                    "required": ["key", "value"],
+                    "properties": {
+                      "key": { "type": "string" },
+                      "value": {}
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "postconditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["validate"],
+            "properties": {
+              "validate": {
+                "type": "string",
+                "enum": ["SYNTAX_VALID", "TESTS_PASS", "LINT_CLEAN"]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["header", "authority", "execution_strategy", "plan"]
+}

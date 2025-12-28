@@ -1,0 +1,9 @@
+{
+  "__protocol": "LIONHEART_BRIDGE_V1",
+  "status": "ACTIVE",
+  "grantor": "Dr. Marchand",
+  "scope": {
+    "role": "ADVISORY_ONLY",
+    "write_access": "NONE"
+  }
+}
