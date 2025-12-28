@@ -1,13 +1,3 @@
-Got it 👍 — the issue isn’t you, it’s that any extra text, separators, or explanations get copied too, and GitHub then treats them as part of the Mermaid block.
-
-So here is a TRIMMED, MINIMAL, FOOLPROOF README.
-No explanations. No separators. No bullets outside Markdown.
-Just pure copy → paste → save.
-
-⸻
-
-✅ COPY ONLY WHAT’S BELOW (nothing above, nothing below)
-
 # ∞ OS™ — Lionheart℠
 > Canonical System Hierarchy  
 > Version: v1.0.3 | Status: LOCKED | Authority: Design Orchard LLC
