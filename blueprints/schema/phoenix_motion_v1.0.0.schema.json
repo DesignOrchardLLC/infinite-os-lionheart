@@ -82,25 +82,35 @@
                 "enum": ["CREATE_FILE", "MODIFY_FILE", "DELETE_FILE", "MUTATE_STATE"]
               },
               "target": { "type": "string" },
-              "payload": {
-                "oneOf": [
-                  {
-                    "required": ["content"],
-                    "properties": { "content": { "type": "string" } }
-                  },
-                  {
-                    "required": ["diff_hunk"],
-                    "properties": { "diff_hunk": { "type": "string" } }
-                  },
-                  {
-                    "required": ["key", "value"],
-                    "properties": {
-                      "key": { "type": "string" },
-                      "value": {}
-                    }
-                  }
-                ]
-              }
+				"payload": {
+					"oneOf": [
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["content"],
+							"properties": {
+								"content": { "type": "string" }
+							}
+						},
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["diff_hunk"],
+							"properties": {
+							"diff_hunk": { "type": "string" }
+							}
+						},
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["key", "value"],
+							"properties": {
+								"key": { "type": "string" },
+								"value": {}
+							}
+						}
+					]
+				}
             }
           }
         },
