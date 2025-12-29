@@ -1,0 +1,55 @@
+{
+  "manifest": {
+    "name": "OS.manifest",
+    "system": "∞ OS™ — Lionheart℠",
+    "version": "v1.0.3",
+    "status": "LOCKED",
+    "authority": "Design Orchard LLC",
+    "date": "2025-12-28",
+    "repository": "DesignOrchardLLC/infinite-os-lionheart",
+    "branch": "main"
+  },
+  "canonical_artifacts": [
+    {
+      "path": "README.md",
+      "role": "Repository Overview",
+      "required": true,
+      "sha256": "{{SHA256_README}}"
+    },
+    {
+      "path": "LIONHEART_v1.0.3.md",
+      "role": "Governance Charter",
+      "required": true,
+      "sha256": "{{SHA256_CHARTER}}"
+    },
+    {
+      "path": "lionheart_schema.json",
+      "role": "Neuro-Forge Schema",
+      "required": true,
+      "sha256": "{{SHA256_SCHEMA}}"
+    },
+    {
+      "path": "artifacts/witness_template.json",
+      "role": "Host Witness Template (Δ)",
+      "required": true,
+      "sha256": "{{SHA256_WITNESS_TEMPLATE}}"
+    },
+    {
+      "path": ".github/workflows/lionheart-verify.yml",
+      "role": "Verification Workflow",
+      "required": false,
+      "sha256": "{{SHA256_WORKFLOW}}"
+    },
+    {
+      "path": "LICENSE",
+      "role": "License",
+      "required": false,
+      "sha256": "{{SHA256_LICENSE}}"
+    }
+  ],
+  "rules": {
+    "order_of_trust": "Publisher signs → Host witnesses (Δ) → Library verifies → Vault preserves",
+    "chain": "⚗️ → 🔬 → 📚 → 🔐",
+    "no_silent_retention": true
+  }
+}
